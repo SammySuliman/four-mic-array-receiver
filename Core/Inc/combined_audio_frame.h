@@ -1,0 +1,28 @@
+#ifndef COMBINED_AUDIO_FRAME_H
+#define COMBINED_AUDIO_FRAME_H
+
+#include <stdint.h>
+
+#define COMBINED_AUDIO_MAGIC_0       0xCC
+#define COMBINED_AUDIO_MAGIC_1       0x33
+#define COMBINED_AUDIO_FRAME_SAMPLES 256
+#define COMBINED_AUDIO_CHANNELS      4
+#define COMBINED_AUDIO_BYTES_PER_SAMPLE 2
+#define COMBINED_AUDIO_PAYLOAD_BYTES \
+    (COMBINED_AUDIO_FRAME_SAMPLES * COMBINED_AUDIO_CHANNELS * COMBINED_AUDIO_BYTES_PER_SAMPLE)
+#define COMBINED_AUDIO_HEADER_BYTES  6
+#define COMBINED_AUDIO_CRC_BYTES     2
+#define COMBINED_AUDIO_TOTAL_BYTES \
+    (COMBINED_AUDIO_HEADER_BYTES + COMBINED_AUDIO_PAYLOAD_BYTES + COMBINED_AUDIO_CRC_BYTES)
+
+typedef struct __attribute__((packed))
+{
+    uint8_t magic0;
+    uint8_t magic1;
+    uint16_t frame_id;
+    uint16_t payload_size;
+    int16_t samples[COMBINED_AUDIO_FRAME_SAMPLES * COMBINED_AUDIO_CHANNELS];
+    uint16_t checksum;
+} CombinedAudioFrame_t;
+
+#endif

@@ -1,0 +1,8 @@
+../Core/Src/stm32l4xx_hal_msp.c:66:6:HAL_MspInit	16	static
+../Core/Src/stm32l4xx_hal_msp.c:83:6:HAL_SPI_MspInit	24	static
+../Core/Src/stm32l4xx_hal_msp.c:100:6:HAL_DFSDM_FilterMspInit	184	static
+../Core/Src/stm32l4xx_hal_msp.c:206:6:HAL_DFSDM_ChannelMspInit	184	static
+../Core/Src/stm32l4xx_hal_msp.c:267:6:HAL_DFSDM_FilterMspDeInit	16	static
+../Core/Src/stm32l4xx_hal_msp.c:303:6:HAL_DFSDM_ChannelMspDeInit	16	static
+../Core/Src/stm32l4xx_hal_msp.c:336:6:HAL_UART_MspInit	184	static
+../Core/Src/stm32l4xx_hal_msp.c:384:6:HAL_UART_MspDeInit	16	static
