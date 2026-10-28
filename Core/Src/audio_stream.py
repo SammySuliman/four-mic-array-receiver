@@ -33,7 +33,7 @@ PAYLOAD_SIZE = AUDIO_FRAME_SAMPLES * AUDIO_CHANNELS * AUDIO_BYTES_PER_SAMPLE
 HEADER_SIZE = 6
 CHECKSUM_SIZE = 2
 FRAME_SIZE = HEADER_SIZE + PAYLOAD_SIZE + CHECKSUM_SIZE
-SAMPLE_RATE = 16_000
+SAMPLE_RATE = 16000
 
 
 def find_stm32_port():
@@ -169,6 +169,17 @@ def main():
         return 1
 
     all_samples = np.concatenate(recorded_samples).astype("<i2", copy=False)
+
+    elapsed = time.monotonic() - start_time
+
+    measured_frame_rate = valid_frames / elapsed
+    measured_sample_rate = measured_frame_rate * AUDIO_FRAME_SAMPLES
+
+    print(f"Wall-clock recording time: {elapsed:.2f} s")
+    print(f"Received frame rate: {measured_frame_rate:.2f} frames/s")
+    print(f"Inferred audio sample rate: {measured_sample_rate:.1f} Hz")
+
+
     with wave.open(args.output, "wb") as wav_file:
         wav_file.setnchannels(AUDIO_CHANNELS)
         wav_file.setsampwidth(AUDIO_BYTES_PER_SAMPLE)
