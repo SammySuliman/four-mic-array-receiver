@@ -3,14 +3,20 @@ import wave
 import numpy as np
 
 
+INT16_MAX = 32767
+INT16_MIN = -32768
+
+
 def load_wav(filename):
     """
     Load a 16-bit PCM WAV file.
 
-    The script will stop immediately if any channel:
-    - contains only zeros
-    - is stuck at one constant value
-    - has zero AC power
+    The script stops immediately if any channel is:
+    - entirely 0
+    - entirely +32767
+    - entirely -32768
+
+    Quiet channels are allowed.
     """
 
     with wave.open(filename, "rb") as wf:
@@ -64,10 +70,6 @@ def load_wav(filename):
 
         full_raw_power = np.mean(
             channel_audio ** 2
-        )
-
-        nonzero_samples = np.count_nonzero(
-            channel_audio
         )
 
         first5_mean = np.mean(
@@ -158,20 +160,19 @@ def load_wav(filename):
         # HARD DEAD-CHANNEL CHECKS
         # --------------------------------------------------
 
-        assert nonzero_samples > 0, (
-            f"\nDEAD CHANNEL: "
-            f"Channel {ch} contains only zeros."
+        assert not np.all(channel_audio == 0), (
+            f"DEAD CHANNEL: "
+            f"Channel {ch} is stuck at 0."
         )
 
-        assert np.min(channel_audio) != np.max(channel_audio), (
-            f"\nDEAD CHANNEL: "
-            f"Channel {ch} is stuck at constant value "
-            f"{channel_audio[0]:.0f}."
+        assert not np.all(channel_audio == INT16_MAX), (
+            f"DEAD CHANNEL: "
+            f"Channel {ch} is stuck at +32767."
         )
 
-        assert full_ac_power > 0, (
-            f"\nDEAD CHANNEL: "
-            f"Channel {ch} has zero AC power."
+        assert not np.all(channel_audio == INT16_MIN), (
+            f"DEAD CHANNEL: "
+            f"Channel {ch} is stuck at -32768."
         )
 
     print("=" * 50)
@@ -193,8 +194,20 @@ def calculate_snr(
         noise window   = noise only
         speech window  = speech + noise
 
-    DC offset is removed from each window before
-    calculating signal power.
+    DC offset is removed from both sections before
+    calculating power.
+
+    Noise power:
+        Pn = mean((noise - mean(noise))^2)
+
+    Speech+noise power:
+        Psn = mean((speech_noise - mean(speech_noise))^2)
+
+    Estimated speech power:
+        Ps = Psn - Pn
+
+    SNR:
+        10 * log10(Ps / Pn)
     """
 
     noise_start_idx = int(
@@ -251,7 +264,7 @@ def calculate_snr(
     )
 
     # --------------------------------------------------
-    # AC POWER
+    # CALCULATE AC POWER
     # --------------------------------------------------
 
     noise_power = np.mean(
@@ -266,14 +279,11 @@ def calculate_snr(
         "Noise power is zero."
     )
 
-    # Estimate speech-only power
     speech_power = (
         speech_noise_power -
         noise_power
     )
 
-    # If this fails, your speech window had less
-    # AC power than your noise-only window.
     assert speech_power > 0, (
         f"Unable to estimate positive speech power.\n"
         f"Noise power: {noise_power:.2f}\n"
@@ -400,7 +410,6 @@ def main():
     print("=" * 50)
 
     if channels == 1:
-
         channels_to_analyze = [0]
 
     elif args.channel is not None:
@@ -417,7 +426,6 @@ def main():
         ]
 
     else:
-
         channels_to_analyze = range(
             channels
         )
